@@ -15,7 +15,10 @@ module.exports = async (req, res) => {
       if (event.type === 'message' && event.message.type === 'text') {
         const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
         const prompt = `你是一個翻譯機器人。如果輸入是中文，請翻譯成印尼文；如果輸入是印尼文，請翻譯成中文。請直接輸出翻譯結果即可。內容："${event.message.text}"`;
-        const result = await model.generateContent(prompt);
+        const result = await ai.models.generateContent({
+            model: "gemini-3-flash-preview",
+            contents: "..."
+        });
         const translated = result.response.text();
         
         await client.replyMessage(event.replyToken, {
