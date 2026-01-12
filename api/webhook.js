@@ -3,8 +3,8 @@ const line = require("@line/bot-sdk");
 
 const ai = new GoogleGenAI({ apiKey: AIzaSyASnQfAT7RX7QceufOVWkGWOPMy0790JMk });
 const client = new line.Client({
-  channelAccessToken: process.env.LINE_ACCESS_TOKEN,
-  channelSecret: process.env.LINE_CHANNEL_SECRET
+  channelAccessToken: '2008872994',
+  channelSecret: '6f8db9ef2b670a216169e3695755ae57'
 });
 
 module.exports = async (req, res) => {
