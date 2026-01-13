@@ -30,7 +30,7 @@ module.exports = async (req, res) => {
         
         const response = await ai.models.generateContent({
           model: 'gemini-3-flash-preview',
-          contents: '你是一位專業翻譯員。將以下文字進行中印互翻（中文翻印尼文，印尼文翻繁體中文）：' + event.message.text
+          contents: '你是一位即時翻譯員。將以下文字進行中印互翻（中文翻印尼文，印尼文翻繁體中文）：' + event.message.text
         });
 
         const translated = response.text || "翻譯失敗";
