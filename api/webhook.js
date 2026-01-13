@@ -2,9 +2,12 @@ const { GoogleGenAI } = require("@google/genai");
 const line = require("@line/bot-sdk");
 
 module.exports = async (req, res) => {
-  // 1. 處理非 POST 請求，防止 405
+  console.log("--- 收到新的請求 ---");
+  console.log("Method:", req.method);
+  console.log("Body:", JSON.stringify(req.body, null, 2));
+
   if (req.method !== 'POST') {
-    return res.status(200).send('Webhook is active and ready for LINE events!');
+    return res.status(200).send('伺服器運作中！請從 LINE 發送訊息測試。');
   }
 
   const GEMINI_KEY = process.env.GEMINI_KEY || process.env.API_KEY;
@@ -12,40 +15,33 @@ module.exports = async (req, res) => {
   const LINE_TOKEN = process.env.LINE_ACCESS_TOKEN;
 
   if (!GEMINI_KEY || !LINE_SECRET || !LINE_TOKEN) {
-    return res.status(200).send('Missing config. Please check Vercel Env Vars.');
+    console.error("環境變數缺失！");
+    return res.status(200).send('Config Error');
   }
 
-  // 2. 初始化 (遵循最新 SDK 規範)
   const ai = new GoogleGenAI({ apiKey: GEMINI_KEY });
-  const client = new line.Client({
-    channelAccessToken: LINE_TOKEN,
-    channelSecret: LINE_SECRET
-  });
+  const client = new line.Client({ channelAccessToken: LINE_TOKEN, channelSecret: LINE_SECRET });
 
   try {
     const events = req.body.events || [];
     for (const event of events) {
       if (event.type === 'message' && event.message.type === 'text') {
-        const userText = event.message.text;
+        console.log("正在處理翻譯:", event.message.text);
         
-        // 3. 正確的生成內容方式
         const response = await ai.models.generateContent({
           model: 'gemini-3-flash-preview',
-          contents: '你是一位專業翻譯官。如果輸入是中文，請翻譯成印尼文；如果輸入是印尼文，請翻譯成繁體中文。只需回傳翻譯結果，不要有額外解釋。內容：' + userText
+          contents: '你是一位專業翻譯員。將以下文字進行中印互翻（中文翻印尼文，印尼文翻繁體中文）：' + event.message.text
         });
 
-        // 4. 正確讀取文字內容 (.text 屬性)
-        const translatedText = response.text || '無法生成翻譯';
+        const translated = response.text || "翻譯失敗";
+        console.log("翻譯結果:", translated);
 
-        await client.replyMessage(event.replyToken, {
-          type: 'text',
-          text: translatedText.trim()
-        });
+        await client.replyMessage(event.replyToken, { type: 'text', text: translated.trim() });
       }
     }
     return res.status(200).send('OK');
   } catch (err) {
-    console.error('Webhook Error:', err);
-    return res.status(200).send('Processed with errors');
+    console.error("執行出錯:", err.message);
+    return res.status(200).send('Error');
   }
 };
