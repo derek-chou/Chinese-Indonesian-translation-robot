@@ -26,8 +26,14 @@ module.exports = async (req, res) => {
     const events = req.body.events || [];
     for (const event of events) {
       if (event.type === 'message' && event.message.type === 'text') {
+        if (event.message.text.trim() === '/show_group_id') {
+          const groupId = event.source.groupId || event.source.roomId || event.source.userId || '無法取得 ID';
+          await client.replyMessage(event.replyToken, { type: 'text', text: groupId });
+          continue;
+        }
+
         console.log("正在處理翻譯:", event.message.text);
-        
+
         const response = await ai.models.generateContent({
           model: 'gemini-3-flash-preview',
           contents: '你是一位即時翻譯員。將以下文字進行中印互翻（中文翻印尼文，印尼文翻繁體中文）：' + event.message.text
